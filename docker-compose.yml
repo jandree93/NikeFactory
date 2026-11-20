@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: nike_factory_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_DATABASE: nike_factory
+      DB_USERNAME: nike
+      DB_PASSWORD: nike123
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: nike_factory_mysql
+    environment:
+      MYSQL_DATABASE: nike_factory
+      MYSQL_USER: nike
+      MYSQL_PASSWORD: nike123
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - datos_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: nike_factory_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+    depends_on:
+      - db
+
+volumes:
+  datos_mysql:
